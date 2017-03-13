@@ -193,7 +193,7 @@
 
 # define CONFIG_ENV_SECT_SIZE		CONFIG_ENV_SIZE
 # ifndef CONFIG_ENV_OFFSET
-#  define CONFIG_ENV_OFFSET		0xE0000
+#  define CONFIG_ENV_OFFSET		0xa00000
 # endif
 #endif
 
@@ -273,10 +273,10 @@
 			"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}; " \
 		"fi\0" \
 	"nandboot=echo Copying Linux from NAND flash to RAM... && " \
-		"nand read ${kernel_load_address} 0x100000 ${kernel_size} && " \
-		"nand read ${devicetree_load_address} 0x600000 ${devicetree_size} && " \
+		"nand read ${kernel_load_address} 0xa40000 ${kernel_size} && " \
+		"nand read ${devicetree_load_address} 0xf40000 ${devicetree_size} && " \
 		"echo Copying ramdisk... && " \
-		"nand read ${ramdisk_load_address} 0x620000 ${ramdisk_size} && " \
+		"nand read ${ramdisk_load_address} 0xf80000 ${ramdisk_size} && " \
 		"bootm ${kernel_load_address} ${ramdisk_load_address} ${devicetree_load_address}\0" \
 	"jtagboot=echo TFTPing Linux to RAM... && " \
 		"tftpboot ${kernel_load_address} ${kernel_image} && " \
