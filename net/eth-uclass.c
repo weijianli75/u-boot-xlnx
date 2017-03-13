@@ -179,6 +179,56 @@ int eth_get_dev_index(void)
 	return -1;
 }
 
+#define AUTO_MODIFY_ETHADDR_DEBUG 0
+#if AUTO_MODIFY_ETHADDR_DEBUG
+void print_buf(const unsigned char buff[], const unsigned int len)
+{
+    unsigned int i = 0;
+    printf("len:%d ", len);
+    for(i = 0; i < len; i++)
+    {
+        printf("%02x-",buff[i]);
+        if ((i + 1) % 32 == 0)
+            printf("\r\n");
+    }
+    printf("\r\n");
+}
+#endif
+int eth_auto_modify_default_hwaddr(struct udevice *dev)
+{
+	int ret = 0;
+	int i = 0;
+	struct eth_pdata *pdata = dev->platdata;
+	unsigned char *mac_addr = (unsigned char *)0x83c00095;
+	unsigned char default_enetaddr[6] = { 0x00, 0x0a, 0x35, 0x00, 0x01, 0x22 };
+	unsigned char env_enetaddr[6];
+	unsigned char unique_enetaddr[6];
+
+	eth_getenv_enetaddr("ethaddr", env_enetaddr);
+#if AUTO_MODIFY_ETHADDR_DEBUG
+	printf("eth_auto_modify: dev->name:%s\r\n", dev->name);
+	print_buf(env_enetaddr, 6);
+	print_buf(default_enetaddr, 6);
+	print_buf(pdata->enetaddr, 6);
+	printf("mac cmp = %d\r\n", memcmp(default_enetaddr, env_enetaddr, 6));
+#endif
+	if (!memcmp(default_enetaddr, env_enetaddr, 6)) {
+		for (i = 0; i < 6; i++) {
+			unique_enetaddr[i] = *mac_addr--;
+		}
+		unique_enetaddr[0] &= 0xfe;
+		unique_enetaddr[0] |= 0x02;
+		ret = eth_setenv_enetaddr("ethaddr", unique_enetaddr);
+		saveenv();
+		memcpy(pdata->enetaddr, unique_enetaddr, 6);
+#if AUTO_MODIFY_ETHADDR_DEBUG
+		printf("set unique_enetaddr:");
+		print_buf(unique_enetaddr, 6);
+#endif
+	}
+	return ret;
+}
+
 static int eth_write_hwaddr(struct udevice *dev)
 {
 	struct eth_pdata *pdata = dev->platdata;
@@ -421,6 +471,7 @@ int eth_initialize(void)
 			if (ethprime && dev == prime_dev)
 				printf(" [PRIME]");
 
+			eth_auto_modify_default_hwaddr(dev);
 			eth_write_hwaddr(dev);
 
 			uclass_next_device(&dev);
