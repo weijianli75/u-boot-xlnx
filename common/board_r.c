@@ -737,6 +737,15 @@ static int initr_kbd(void)
 }
 #endif
 
+#ifdef CONFIG_AUTO_UPDATE_ETH_HWADDR
+extern int eth_auto_update_default_hwaddr(void);
+
+static int auto_update_eth_hwaddr(void)
+{
+	return eth_auto_update_default_hwaddr();
+}
+#endif
+
 static int run_main_loop(void)
 {
 #ifdef CONFIG_SANDBOX
@@ -968,6 +977,9 @@ init_fnc_t init_sequence_r[] = {
 #endif
 #if defined(CONFIG_SPARC)
 	prom_init,
+#endif
+#if defined(CONFIG_AUTO_UPDATE_ETH_HWADDR)
+	auto_update_eth_hwaddr,
 #endif
 	run_main_loop,
 };
