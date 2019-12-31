@@ -188,17 +188,17 @@ int eth_get_dev_index(void)
 
 #define MAC_ADDR_LEN 17 /* xx:xx:xx:xx:xx:xx */
 
-static void beep_on(void)
-{
-	unsigned int regval;
+//static void beep_on(void)
+//{
+//	unsigned int regval;
 
-	regval = *(volatile unsigned int *)0xe000a244;
-	regval |= 0x00000080; /* BEEP */
-	*(volatile unsigned int *)0xe000a244 = regval;
-	*(volatile unsigned int *)0xe000a248 = regval;
-	regval = *(volatile unsigned int *)0xe000a044;
-	*(volatile unsigned int *)0xe000a044 = (regval | 0x00000080);
-}
+//	regval = *(volatile unsigned int *)0xe000a244;
+//	regval |= 0x00000080; /* BEEP */
+//	*(volatile unsigned int *)0xe000a244 = regval;
+//	*(volatile unsigned int *)0xe000a248 = regval;
+//	regval = *(volatile unsigned int *)0xe000a044;
+//	*(volatile unsigned int *)0xe000a044 = (regval | 0x00000080);
+//}
 #if 0
 static void flash_led(void)
 {
@@ -217,68 +217,91 @@ static void flash_led(void)
 	}
 }
 #endif
-
+static unsigned char mac_random(void)
+{
+    unsigned long long rand = get_ticks() * 100000;
+    unsigned char a;
+    rand = rand * 1664525L + 1013904223L;
+    a = rand >> 24;
+    //‘0~9, a ~ f, A ~ F’
+//    if (a < 'A')
+//        a = a % 10 + 48;
+//    else if (a < 'F')
+//        a = a % 6 + 65;
+//    else if (a < 'a' || a > 'f')
+//        a = a % 6 + 97;
+//    if(a == 0xff)
+//	  a = 0x88;
+	return a;
+}
 int eth_auto_update_default_hwaddr(void)
 {
-	unsigned char *mac_load_addr = (unsigned char *)0x8000; /* tftpboot address */
+//	unsigned char *mac_load_addr = (unsigned char *)0x8000; /* tftpboot address */
 	unsigned char default_enetaddr[6] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55 }; /* See include/configs/zynq-common.h */
 	unsigned char enetaddr_curr[6];
-	unsigned char enetaddr_next[6];
-	unsigned long long enetaddr_val = 0;
-	unsigned char *ptr;
-	char buf[20];
-	int ret = 0, i;
+//	unsigned char enetaddr_next[6];
+//	unsigned long long enetaddr_val = 0;
+//	unsigned char *ptr;
+//	char buf[20];
+//	int ret = 0, i;
+	int i, j;
 
 	eth_getenv_enetaddr("ethaddr", enetaddr_curr);
 	if (memcmp(default_enetaddr, enetaddr_curr, 6) == 0) { /* Check if first time to boot? */
 	  	printf("enetaddr_curr == default_enetaddr (00:11:22:33:44:55), need to update the MAC hwaddr...\n");
-	  	run_command("setenv ipaddr 192.168.1.11", 0);
-	  	run_command("setenv serverip 192.168.1.101", 0);
-	  	ret = run_command("tftpboot 0x8000 mac_address.txt", 0);
-		if (ret) {
-			printf("ERROR: tftpboot ret=%d, ipaddr: 192.168.1.11, serverip: 192.168.1.101, filename: mac_address.txt\n", ret);
-			beep_on();
-			return 0;
-		}
-	  	ptr = mac_load_addr;
-		printf("TFTP got MAC address: %s\n", ptr);
+//	  	run_command("setenv ipaddr 192.168.1.11", 0);
+//	  	run_command("setenv serverip 192.168.1.101", 0);
+//	  	ret = run_command("tftpboot 0x8000 mac_address.txt", 0);
+//		if (ret) {
+//			printf("ERROR: tftpboot ret=%d, ipaddr: 192.168.1.11, serverip: 192.168.1.101, filename: mac_address.txt\n", ret);
+//			beep_on();
+//			return 0;
+//		}
+//	  	ptr = mac_load_addr;
+//		printf("TFTP got MAC address: %s\n", ptr);
 
-	  	for (i = 0; i < MAC_ADDR_LEN; i++) {
-	    		printf("%02x ", *ptr++);
-	    	}
-		printf("\n");
+//	  	for (i = 0; i < MAC_ADDR_LEN; i++) {
+//	    		printf("%02x ", *ptr++);
+//	    	}
+//		printf("\n");
 
-	  	eth_parse_enetaddr((const char *)mac_load_addr, enetaddr_curr);
-	  	for (i = 0; i < 6; i++) {
-	    		enetaddr_val <<= 8;
-	    		enetaddr_val |= enetaddr_curr[i];
-	  	}
+//	  	eth_parse_enetaddr((const char *)mac_load_addr, enetaddr_curr);
+//	  	for (i = 0; i < 6; i++) {
+//	    		enetaddr_val <<= 8;
+//	    		enetaddr_val |= enetaddr_curr[i];
+//	  	}
 
 	  	/* enetaddr_val add by 1 */
-	  	enetaddr_val++;
+//	  	enetaddr_val++;
 
-	  	for (i = 0; i < 6; i++) {
-	    		enetaddr_next[5-i] = enetaddr_val & 0xff;
-	    		enetaddr_val >>= 8;
-	  	}
+//	  	for (i = 0; i < 6; i++) {
+//	    		enetaddr_next[5-i] = enetaddr_val & 0xff;
+//	    		enetaddr_val >>= 8;
+//	  	}
 
 		/* Replace mac_load_addr with enetaddr_next */
-		sprintf(buf, "%pM", enetaddr_next);
-		memcpy(mac_load_addr, buf, MAC_ADDR_LEN); /* xx:xx:xx:xx:xx:xx total 17 bytes */
-		printf("\nWrite back ethaddr: %s\n", buf);
+//		sprintf(buf, "%pM", enetaddr_next);
+//		memcpy(mac_load_addr, buf, MAC_ADDR_LEN); /* xx:xx:xx:xx:xx:xx total 17 bytes */
+//		printf("\nWrite back ethaddr: %s\n", buf);
 
-		printf("run_command:tftpput 0x8000 0x12 mac_address.txt\n");
-		ret = run_command("tftpput 0x8000 0x12 mac_address.txt", 0); /* upload 18 bytes (17B mac address + '0') */
-		printf("tftpput ret=%d\n", ret);
-		if (ret) {
-			printf("ERROR: tftpput ret=%d\n", ret);
-			beep_on();
-			return 0;
-		}
+//		printf("run_command:tftpput 0x8000 0x12 mac_address.txt\n");
+//		ret = run_command("tftpput 0x8000 0x12 mac_address.txt", 0); /* upload 18 bytes (17B mac address + '0') */
+//		printf("tftpput ret=%d\n", ret);
+//		if (ret) {
+//			printf("ERROR: tftpput ret=%d\n", ret);
+//			beep_on();
+//			return 0;
+//		}
 
 		/* Everything goes well, update ethaddr now */
-	  	run_command("setenv ipaddr", 0);
-	  	run_command("setenv serverip", 0);
+//	  	run_command("setenv ipaddr", 0);
+//	  	run_command("setenv serverip", 0);
+        for (i = 0; i < 6; i++) {
+			enetaddr_curr[i] = 0xfe & mac_random();
+          for (j = 0; j < enetaddr_curr[i]; j++) {
+			mac_random();
+		  }
+		}
 		eth_setenv_enetaddr("ethaddr", enetaddr_curr);
 		saveenv(); /* Save to env partition */
 
